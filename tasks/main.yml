@@ -1,0 +1,39 @@
+---
+- name: gather fancts
+  setup:
+
+- name: add official rethinkdb apt repository
+  register: _repo
+  become: true
+  apt_repository:
+    repo: deb http://download.rethinkdb.com/apt {{ansible_distribution_release}} main # `ansible_distribution_release` → precise, wheezy, ...
+
+- name: add apt rethinkdb repository key
+  register: _repo_key
+  become: true
+  apt_key:
+    url: http://download.rethinkdb.com/apt/pubkey.gpg
+
+- name: update package list
+  when: _repo.changed or _repo_key.changed
+  become: true
+  apt:
+    update_cache: true
+
+- name: install rethinkdb
+  become: true
+  apt:
+    name: rethinkdb
+    allow_unauthenticated: True
+
+- name: configure rethinkdb
+  become: true
+  template:
+    src: default.conf
+    dest: /etc/rethinkdb/instances.d/default.conf
+
+- name: restart rethinkdb service
+  become: true
+  service:
+    name: rethinkdb
+    state: restarted
