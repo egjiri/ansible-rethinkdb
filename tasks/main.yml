@@ -6,7 +6,7 @@
   register: _repo
   become: true
   apt_repository:
-    repo: deb http://download.rethinkdb.com/apt {{ansible_distribution_release}} main # `ansible_distribution_release` → precise, wheezy, ...
+    repo: deb http://download.rethinkdb.com/apt {{ansible_distribution_release}} main # `ansible_distribution_release` → precise, xenial, ...
 
 - name: add apt rethinkdb repository key
   register: _repo_key
@@ -26,14 +26,14 @@
     name: rethinkdb
     allow_unauthenticated: True
 
-- name: configure rethinkdb
-  become: true
-  template:
-    src: default.conf
-    dest: /etc/rethinkdb/instances.d/default.conf
-
-- name: restart rethinkdb service
+- name: stop rethinkdb service
   become: true
   service:
     name: rethinkdb
-    state: restarted
+    state: stopped
+
+- name: reset rethinkdb data
+  become: true
+  file:
+    path: /var/lib/rethinkdb/default
+    state: absent
