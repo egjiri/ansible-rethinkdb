@@ -4,36 +4,46 @@
 
 - name: add official rethinkdb apt repository
   register: _repo
-  become: true
+  become: True
   apt_repository:
     repo: deb http://download.rethinkdb.com/apt {{ansible_distribution_release}} main # `ansible_distribution_release` → precise, xenial, ...
 
 - name: add apt rethinkdb repository key
   register: _repo_key
-  become: true
+  become: True
   apt_key:
     url: http://download.rethinkdb.com/apt/pubkey.gpg
 
 - name: update package list
   when: _repo.changed or _repo_key.changed
-  become: true
+  become: True
   apt:
-    update_cache: true
+    update_cache: True
+
+- name: install pip package
+  become: True
+  apt:
+    name: python-pip
 
 - name: install rethinkdb
-  become: true
+  become: True
   apt:
     name: rethinkdb
     allow_unauthenticated: True
 
 - name: stop rethinkdb service
-  become: true
+  become: True
   service:
     name: rethinkdb
     state: stopped
 
 - name: reset rethinkdb data
-  become: true
+  become: True
   file:
     path: /var/lib/rethinkdb/default
     state: absent
+
+- name: install rethinkdb python driver
+  become: True
+  pip:
+    name: rethinkdb
