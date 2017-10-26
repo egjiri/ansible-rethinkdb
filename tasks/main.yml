@@ -2,17 +2,17 @@
 - name: gather facts
   setup:
 
+- name: add rethinkdb apt key
+  register: _repo_key
+  become: True
+  apt_key:
+    url: https://download.rethinkdb.com/apt/pubkey.gpg
+
 - name: add official rethinkdb apt repository
   register: _repo
   become: True
   apt_repository:
     repo: deb http://download.rethinkdb.com/apt {{ansible_distribution_release}} main
-
-- name: add apt rethinkdb repository key
-  register: _repo_key
-  become: True
-  apt_key:
-    url: https://download.rethinkdb.com/apt/pubkey.gpg
 
 - name: update package list
   when: _repo.changed or _repo_key.changed
@@ -20,10 +20,20 @@
   apt:
     update_cache: True
 
+- name: find available rethinkdb versions
+  raw: apt-cache madison rethinkdb | awk '{print $3}'
+  register: _rethinkdb_versions
+  changed_when: false
+
+- name: error out if the rethinkdb_version is not valid
+  fail:
+    msg: "The specified rethinkdb_version: '{{rethinkdb_version}}' is not valid! Allowed rethinkdb versions are [{{_rethinkdb_versions.stdout_lines | join(', ')}}]"
+  when: rethinkdb_version not in _rethinkdb_versions.stdout_lines
+
 - name: install rethinkdb
   become: True
   apt:
-    name: rethinkdb
+    name: rethinkdb={{rethinkdb_version}}
     allow_unauthenticated: True
   retries: 5
   delay: 10
