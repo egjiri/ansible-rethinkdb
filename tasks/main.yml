@@ -2,11 +2,12 @@
 - name: gather facts
   setup:
 
-- name: add rethinkdb apt key
+- name: add rethinkdb apt
   register: _repo_key
   become: True
   apt_key:
-    url: https://download.rethinkdb.com/apt/pubkey.gpg
+    data: "{{ lookup('file', '../files/rethinkdb-apt-key') }}"
+    state: present
 
 - name: add official rethinkdb apt repository
   register: _repo
