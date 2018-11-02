@@ -54,7 +54,7 @@
 - name: install pip package
   become: True
   apt:
-    name: python-pip
+    name: python3-pip
 
 - name: install rethinkdb python driver
   become: True
